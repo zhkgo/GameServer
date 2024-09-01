@@ -1,10 +1,10 @@
 local skynet = require "skynet"
 require "gas.playerMgr"
-
+require "gas.rpcMgr"
 skynet.register_protocol {
 	name = "client",
 	id = skynet.PTYPE_CLIENT,
-	unpack = skynet.tostring,
+	unpack = skynet.unpack,
 }
 
 SOURCE_GATE = nil
@@ -49,10 +49,5 @@ skynet.start(function()
 		skynet.ret(skynet.pack(f(source, ...)))
 	end)
 
-	skynet.dispatch("client", function(_,_, msg)
-		-- the simple echo service
-		print(msg)
-		skynet.sleep(1000000)	-- sleep a while
-		skynet.ret(msg)
-	end)
+	skynet.dispatch("client", RpcMgr.ForwardMsg)
 end)

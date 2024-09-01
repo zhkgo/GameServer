@@ -77,7 +77,7 @@ end
 -- call by self (when recv a request from client)
 function SERVER_CALLBACK.request_handler(username, msg)
 	local u = USERNAME_MAP[username]
-	return skynet.tostring(skynet.rawcall(GameServer, "client", u.uid, msg))
+	return skynet.tostring(skynet.rawcall(GameServer, "client", skynet.pack(u.uid, msg)))
 end
 
 -- call by self (when gate open)

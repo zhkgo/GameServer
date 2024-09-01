@@ -67,7 +67,7 @@ writeline(fd, crypt.base64encode(hmac))
 
 local token = {
 	server = "sample",
-	user = "hello",
+	user = "zhkgo",
 	pass = "password",
 }
 
@@ -165,6 +165,6 @@ print("===>",send_request("again",1))	-- request again (use new session)
 print("<===",recv_response(readpackage()))
 print("<===",recv_response(readpackage()))
 
--- print("disconnect")
--- socket.close(fd)
+print("disconnect")
+socket.close(fd)
 
