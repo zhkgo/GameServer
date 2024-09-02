@@ -4,7 +4,15 @@ require "gas.rpcMgr"
 skynet.register_protocol {
 	name = "client",
 	id = skynet.PTYPE_CLIENT,
-	unpack = skynet.unpack,
+	unpack = function (msg, sz)
+		local uid, msg = skynet.unpack(msg, sz)
+		local player = PlayerMgr:GetById(uid)
+		if not player then
+			skynet.error(string.format("player %s is not exist", uid))
+			return
+		end
+		return player, msg 
+	end,
 }
 
 SOURCE_GATE = nil
@@ -49,5 +57,5 @@ skynet.start(function()
 		skynet.ret(skynet.pack(f(source, ...)))
 	end)
 
-	skynet.dispatch("client", RpcMgr.ForwardMsg)
+	skynet.dispatch("client", RpcMgr._ForwardMsg)
 end)
