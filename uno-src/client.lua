@@ -66,6 +66,10 @@ function RPCMgr:Connect(ip, port, subid)
 	assert(code == 200, "Connect failed")
 end
 
+function RPCMgr:SendRpc(...)
+	RPCMgr:SendRequest(msgpack.pack(...))
+end
+-- 离线
 function RPCMgr:Disconnect()
 	socket.close(self.fd)
 	self.fd = nil
@@ -164,6 +168,16 @@ function RPCMgr:TryRecv(f)
 	return f(self.last .. r)
 end
 
+-- C2S Define
+C2SDefine = {
+	["Test"] = "ss",	-- 这里的value写函数参数，注释写参数含义会比较好
+	["Test2"] = "sss",
+}
+C2S = {}
+for k,v in pairs(C2SDefine) do
+	C2S[k] = function(...)	RPCMgr:SendRpc(k, ...)	end
+end
+
 local token = {
 	server = "sample",
 	user = "zhkgo",
@@ -178,15 +192,15 @@ print("login ok, subid=", subid)
 RPCMgr:Connect("127.0.0.1", 8888, subid)
 
 print("===>", RPCMgr:SendRequest("echo"))
--- print("<===", RPCMgr:RecvResponse())
+print("<===", RPCMgr:RecvResponse())
 
 print("disconnect")
 RPCMgr:Disconnect()
 
 print("connect again")
 RPCMgr:Connect("127.0.0.1", 8888, subid)
-print("===>", RPCMgr:SendRequest(msgpack.pack("Test", 1, 2, "ssss")))
-print("===>", RPCMgr:SendRequest(msgpack.pack("Test2", 1,3,"sss",{["sas"]= 1})))
+print("===>", C2S.Test(1, 2, "ssss"))
+print("===>", C2S.Test2(1, 3, "sss", {["sas"]= 1}))
 print("<===", RPCMgr:RecvResponse())
 print("<===", RPCMgr:RecvResponse())
 print("disconnect")
