@@ -57,4 +57,8 @@ function RpcMgr.Test2(player, a, b, c, d)
     S2C.SyncName(player, "Hello ZHK Test")
     S2C.SyncName(player, "Hello ZHK Test")
     S2C.SyncRoom(player, "Hello ZHK Room", 2)
+    S2C.SyncName(player, "Hello ZHK Test")
+    S2C.SyncName(player, "Hello ZHK Test")
+    S2C.SyncName(player, "Hello ZHK Test")
+    S2C.SyncName(player, "Hello ZHK Test")
 end

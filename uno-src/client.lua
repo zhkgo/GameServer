@@ -96,6 +96,19 @@ function RpcMgr:RecvRpc()
 	return msgpack.unpack(self:RecvResponse())
 end
 
+-- 接收RPC消息并处理
+function RpcMgr:RecvRpcAndHandle()
+	self:_CallS2C(self:RecvRpc())
+end
+
+S2C = {}
+function RpcMgr:_CallS2C(name, ...)
+	local f = S2C[name]
+	if f then
+		return f(...)
+	end
+end
+
 -- 发一行给服务器
 function RpcMgr:Writeline(text)
 	socket.send(self.fd, text .. "\n")
@@ -163,6 +176,7 @@ function RpcMgr:TryRecv(f)
 	if result then
 		return result, self.last
 	end
+	print("RECV")
 	local r = socket.recv(self.fd)
 	if not r then
 		return nil, self.last
