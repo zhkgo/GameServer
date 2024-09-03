@@ -8,9 +8,10 @@ function Player:new(...)
     return o
 end
 
-function Player:Ctor(uid, sid)
+function Player:Ctor(uid, sid, username)
     self.m_Uid = uid
     self.m_Sid = sid
+    self.m_UserName = username
     self.m_Invaild = false
 end
 

@@ -8,10 +8,10 @@ if _VERSION ~= "Lua 5.4" then
 	error "Use lua 5.4"
 end
 
-RPCMgr = {}
+RpcMgr = {}
 
 -- 1. 登录验证
-function RPCMgr:MakeAuth(ip, port, token)
+function RpcMgr:MakeAuth(ip, port, token)
 	self.fd = assert(socket.connect(ip, port))
 	self.last = ""
 	self.token = token
@@ -31,7 +31,7 @@ function RPCMgr:MakeAuth(ip, port, token)
 	self:Writeline(crypt.base64encode(hmac))
 
 	-- 发送加密的token
-	local etoken = crypt.desencode(secret, RPCMgr.EncodeToken(token))
+	local etoken = crypt.desencode(secret, RpcMgr.EncodeToken(token))
 	self:Writeline(crypt.base64encode(etoken))
 
 	-- 等待验证结果
@@ -46,7 +46,7 @@ function RPCMgr:MakeAuth(ip, port, token)
 end
 
 -- 2. 连接游戏服
-function RPCMgr:Connect(ip, port, subid)
+function RpcMgr:Connect(ip, port, subid)
 	self.fd = assert(socket.connect(ip, port))
 	self.last = ""
 
@@ -60,23 +60,23 @@ function RPCMgr:Connect(ip, port, subid)
 	self:SendPackage(handshake .. ":" .. crypt.base64encode(hmac))
 
 	-- 接收回应包
-	local result = RPCMgr:ReadPackage()
+	local result = RpcMgr:ReadPackage()
 	print(result)
 	local code = tonumber(string.sub(result, 1, 3))
 	assert(code == 200, "Connect failed")
 end
 
-function RPCMgr:SendRpc(...)
-	RPCMgr:SendRequest(msgpack.pack(...))
+function RpcMgr:SendRpc(...)
+	RpcMgr:SendRequest(msgpack.pack(...))
 end
 -- 离线
-function RPCMgr:Disconnect()
+function RpcMgr:Disconnect()
 	socket.close(self.fd)
 	self.fd = nil
 end
 
 -- 发送请求包
-function RPCMgr:SendRequest(v)
+function RpcMgr:SendRequest(v)
 	local size = #v + 4
 	socket.send(self.fd, string.pack(">I2", size)..v..string.pack(">I4", self.session))
 	self.session = self.session + 1
@@ -84,7 +84,7 @@ function RPCMgr:SendRequest(v)
 end
 
 -- 接收回应包
-function RPCMgr:RecvResponse()
+function RpcMgr:RecvResponse()
 	local v = self:ReadPackage()
 	local size = #v - 5
 	local content, ok, session = string.unpack("c"..tostring(size).."B>I4", v)
@@ -92,27 +92,27 @@ function RPCMgr:RecvResponse()
 end
 
 -- 发一行给服务器
-function RPCMgr:Writeline(text)
+function RpcMgr:Writeline(text)
 	socket.send(self.fd, text .. "\n")
 end
 
 -- 发包给服务器
-function RPCMgr:SendPackage(pack)
+function RpcMgr:SendPackage(pack)
 	socket.send(self.fd, string.pack(">s2", pack))
 end
 
 -- 读一行
-function RPCMgr:ReadLine()
-	return self:UnpackByF(RPCMgr.UnpackLine)
+function RpcMgr:ReadLine()
+	return self:UnpackByF(RpcMgr.UnpackLine)
 end
 
 -- 读包
-function RPCMgr:ReadPackage()
-	return self:UnpackByF(RPCMgr.UnpackPackage)
+function RpcMgr:ReadPackage()
+	return self:UnpackByF(RpcMgr.UnpackPackage)
 end
 
 -- 按行解析
-function RPCMgr.UnpackLine(text)
+function RpcMgr.UnpackLine(text)
 	local from = text:find("\n", 1, true)
 	if from then
 		return text:sub(1, from-1), text:sub(from+1)
@@ -121,7 +121,7 @@ function RPCMgr.UnpackLine(text)
 end
 
 -- 按包解析
-function RPCMgr.UnpackPackage(text)
+function RpcMgr.UnpackPackage(text)
 	local size = #text
 	if size < 2 then
 		return nil, text
@@ -134,14 +134,14 @@ function RPCMgr.UnpackPackage(text)
 	return text:sub(3,2+s), text:sub(3+s)
 end
 
-function RPCMgr.EncodeToken(token)
+function RpcMgr.EncodeToken(token)
 	return string.format("%s@%s:%s",
 		crypt.base64encode(token.user),
 		crypt.base64encode(token.server),
 		crypt.base64encode(token.pass))
 end
 
-function RPCMgr:UnpackByF(f)
+function RpcMgr:UnpackByF(f)
 	while true do
 		local result
 		result, self.last = self:TryRecv(f)
@@ -152,7 +152,7 @@ function RPCMgr:UnpackByF(f)
 	end
 end
 
-function RPCMgr:TryRecv(f)
+function RpcMgr:TryRecv(f)
 	local result
 	result, self.last = f(self.last)
 	if result then
@@ -175,7 +175,7 @@ C2SDefine = {
 }
 C2S = {}
 for k,v in pairs(C2SDefine) do
-	C2S[k] = function(...)	RPCMgr:SendRpc(k, ...)	end
+	C2S[k] = function(...)	RpcMgr:SendRpc(k, ...)	end
 end
 
 local token = {
@@ -184,27 +184,28 @@ local token = {
 	pass = "password",
 }
 
-local subid = RPCMgr:MakeAuth("127.0.0.1", 8001, token)
+local subid = RpcMgr:MakeAuth("127.0.0.1", 8001, token)
 
 print("login ok, subid=", subid)
 
 ----- connect to game server
-RPCMgr:Connect("127.0.0.1", 8888, subid)
+RpcMgr:Connect("127.0.0.1", 8888, subid)
 
-print("===>", RPCMgr:SendRequest("echo"))
-print("<===", RPCMgr:RecvResponse())
+print("===>", RpcMgr:SendRequest("echo"))
+print("<===", RpcMgr:RecvResponse())
 
 print("disconnect")
-RPCMgr:Disconnect()
+RpcMgr:Disconnect()
 
 print("connect again")
-RPCMgr:Connect("127.0.0.1", 8888, subid)
+RpcMgr:Connect("127.0.0.1", 8888, subid)
 print("===>", C2S.Test(1, 2, "ssss"))
 print("===>", C2S.Test2(1, 3, "sss", {["sas"]= 1}))
-print("<===", RPCMgr:RecvResponse())
-print("<===", RPCMgr:RecvResponse())
+print("<===", RpcMgr:RecvResponse())
+print("<===", RpcMgr:RecvResponse())
+print("<===", RpcMgr:RecvResponse())
 print("disconnect")
-RPCMgr:Disconnect()
+RpcMgr:Disconnect()
 
 -- print("===>",send_request(msgpack.pack("Test", 1,2,"sss"),1))	-- request again (use new session)
 -- print("===>",send_request(msgpack.pack("Test2", 1,3,"sss",{["sas"]= 1}),2))	-- request again (use new session)

@@ -31,7 +31,7 @@ function SERVER_CALLBACK.login_handler(uid, secret)
 
 	-- trash subid (no used)
 	GameServer = skynet.uniqueservice "GameServer"
-	skynet.call(GameServer, "lua", "login", uid, id, secret)
+	skynet.call(GameServer, "lua", "login", uid, id, username, secret)
 
 	USERS[uid] = u
 	USERNAME_MAP[username] = u

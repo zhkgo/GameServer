@@ -135,7 +135,12 @@ function server.start(conf)
 		logout = assert(conf.logout_handler),
 		kick = assert(conf.kick_handler),
 	}
-
+	function CMD.send(username, msg)
+		local u = user_online[username]
+		if u and u.fd and connection[u.fd] then
+			socketdriver.send(u.fd, string.pack(">s2", msg .. string.pack(">BI4", 1, 0)))
+		end
+	end
 	function handler.command(cmd, source, ...)
 		local f = assert(CMD[cmd])
 		return f(...)

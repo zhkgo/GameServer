@@ -9,13 +9,13 @@ function PlayerMgr:StartUp()
     skynet.timeout(SavePlayerDataInterval, PlayerMgr.OnSaveTick)
 end
 
-function PlayerMgr:Add(uid, sid)
+function PlayerMgr:Add(uid, sid, username)
     local player = self.m_Players[uid]
     if player then
         player:Reconnect()
         return
     end
-    player = player or Player:new(uid, sid)
+    player = player or Player:new(uid, sid, username)
     player:Connect()
     self.m_Players[uid] = player
 end

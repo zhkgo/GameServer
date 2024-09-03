@@ -3,7 +3,11 @@ msgpack = require "msgpack"
 local skynet = require "skynet"
 RpcMgr = {}
 
-function RpcMgr._ForwardMsg(_, _, player, msg)
+function RpcMgr._SendMsg(player, msg)
+    skynet.call(SOURCE_GATE, "lua", "send", player.m_UserName, msg)
+end
+
+function RpcMgr._RecvMsg(_, _, player, msg)
     -- unpack msg 取出rpc名字和参数
     print(msg)
     RpcMgr._CallRPC(player, msgpack.unpack(msg))
@@ -26,6 +30,7 @@ function RpcMgr.Test(player,a, b, c)
     print("In Test")
     print(a,b,c)
     print(type(a), type(b), type(c))
+    RpcMgr._SendMsg(player, "Hello ZHK Test")
 end
 
 function RpcMgr.Test2(player, a, b, c, d)

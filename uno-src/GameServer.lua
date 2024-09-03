@@ -18,7 +18,7 @@ skynet.register_protocol {
 SOURCE_GATE = nil
 CmdMgr = {}
 
-function CmdMgr.login(source, uid, sid, secret)
+function CmdMgr.login(source, uid, sid, username, secret)
 	-- you may use secret to make a encrypted data stream
 	skynet.error(string.format("%s is login", uid))
 	if not SOURCE_GATE then
@@ -28,7 +28,7 @@ function CmdMgr.login(source, uid, sid, secret)
 		return
 	end
 
-	PlayerMgr:Add(uid, sid)
+	PlayerMgr:Add(uid, sid, username)
 	-- you may load user data from database
 end
 
@@ -57,5 +57,5 @@ skynet.start(function()
 		skynet.ret(skynet.pack(f(source, ...)))
 	end)
 
-	skynet.dispatch("client", RpcMgr._ForwardMsg)
+	skynet.dispatch("client", RpcMgr._RecvMsg)
 end)
