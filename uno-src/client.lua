@@ -77,8 +77,8 @@ end
 
 -- 发送请求包
 function RpcMgr:SendRequest(v)
-	local size = #v + 4
-	socket.send(self.fd, string.pack(">I2", size)..v..string.pack(">I4", self.session))
+	local size = #v
+	socket.send(self.fd, string.pack(">I2", size)..v)
 	self.session = self.session + 1
 	return v, self.session - 1
 end
@@ -86,9 +86,14 @@ end
 -- 接收回应包
 function RpcMgr:RecvResponse()
 	local v = self:ReadPackage()
-	local size = #v - 5
-	local content, ok, session = string.unpack("c"..tostring(size).."B>I4", v)
-	return ok ~= 0, content, session
+	local size = #v
+	local content = string.unpack("c"..tostring(size), v)
+	return content
+end
+
+-- 接收RPC消息
+function RpcMgr:RecvRpc()
+	return msgpack.unpack(self:RecvResponse())
 end
 
 -- 发一行给服务器
@@ -192,7 +197,7 @@ print("login ok, subid=", subid)
 RpcMgr:Connect("127.0.0.1", 8888, subid)
 
 print("===>", RpcMgr:SendRequest("echo"))
-print("<===", RpcMgr:RecvResponse())
+-- print("<===", RpcMgr:RecvResponse())
 
 print("disconnect")
 RpcMgr:Disconnect()
@@ -201,9 +206,11 @@ print("connect again")
 RpcMgr:Connect("127.0.0.1", 8888, subid)
 print("===>", C2S.Test(1, 2, "ssss"))
 print("===>", C2S.Test2(1, 3, "sss", {["sas"]= 1}))
-print("<===", RpcMgr:RecvResponse())
-print("<===", RpcMgr:RecvResponse())
-print("<===", RpcMgr:RecvResponse())
+print("<===", RpcMgr:RecvRpc())
+print("<===", RpcMgr:RecvRpc())
+print("<===", RpcMgr:RecvRpc())
+print("<===", RpcMgr:RecvRpc())
+
 print("disconnect")
 RpcMgr:Disconnect()
 

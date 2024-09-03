@@ -138,7 +138,7 @@ function server.start(conf)
 	function CMD.send(username, msg)
 		local u = user_online[username]
 		if u and u.fd and connection[u.fd] then
-			socketdriver.send(u.fd, string.pack(">s2", msg .. string.pack(">BI4", 1, 0)))
+			socketdriver.send(u.fd, string.pack(">s2", msg))
 		end
 	end
 	function handler.command(cmd, source, ...)
@@ -312,6 +312,18 @@ function server.start(conf)
 			end
 		end
 	end
+	
+	local function request_no_reply(fd, msg, sz)
+		local u = assert(connection[fd], "invalid fd")
+		local message = netpack.tostring(msg, sz)
+		local ok, err = pcall(request_handler, u.username, message)
+		if not ok then
+			skynet.error(string.format("Invalid package %s : %s", err, message))
+			if connection[fd] then
+				gateserver.closeclient(fd)
+			end
+		end
+	end
 
 	function handler.message(fd, msg, sz)
 		local addr = handshake[fd]
@@ -319,7 +331,7 @@ function server.start(conf)
 			auth(fd,addr,msg,sz)
 			handshake[fd] = nil
 		else
-			request(fd, msg, sz)
+			request_no_reply(fd, msg, sz)
 		end
 	end
 
