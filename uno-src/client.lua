@@ -140,7 +140,7 @@ end
 function RPCMgr:UnpackByF(f)
 	while true do
 		local result
-		result, last = self:TryRecv(f)
+		result, self.last = self:TryRecv(f)
 		if result then
 			return result
 		end
@@ -178,7 +178,7 @@ print("login ok, subid=", subid)
 RPCMgr:Connect("127.0.0.1", 8888, subid)
 
 print("===>", RPCMgr:SendRequest("echo"))
-print("<===", RPCMgr:RecvResponse())
+-- print("<===", RPCMgr:RecvResponse())
 
 print("disconnect")
 RPCMgr:Disconnect()
@@ -188,7 +188,7 @@ RPCMgr:Connect("127.0.0.1", 8888, subid)
 print("===>", RPCMgr:SendRequest(msgpack.pack("Test", 1, 2, "ssss")))
 print("===>", RPCMgr:SendRequest(msgpack.pack("Test2", 1,3,"sss",{["sas"]= 1})))
 print("<===", RPCMgr:RecvResponse())
-print("<===", RPCMgr:RecvResponse())	-- TODO 第二个包收不到
+print("<===", RPCMgr:RecvResponse())
 print("disconnect")
 RPCMgr:Disconnect()
 
