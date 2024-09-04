@@ -9,7 +9,8 @@ if _VERSION ~= "Lua 5.4" then
 end
 
 RpcMgr = {}
-
+S2C = {}
+C2S = {}
 -- 1. 登录验证
 function RpcMgr:MakeAuth(ip, port, token)
 	self.fd = assert(socket.connect(ip, port))
@@ -101,15 +102,6 @@ function RpcMgr:RecvRpcAndHandle()
 	self:_CallS2C(self:RecvRpc())
 end
 
-S2C = {}
-function S2C.SyncRoom(name, num)
-	print(string.format("SyncRoom %s %d", name, num))
-end
-
-function S2C.SyncName(name)
-	print(string.format("SyncName %s", name))
-end
-
 function RpcMgr:_CallS2C(name, ...)
 	local f = S2C[name]
 	if f then
@@ -184,7 +176,6 @@ function RpcMgr:TryRecv(f)
 	if result then
 		return result, self.last
 	end
-	print("RECV")
 	local r = socket.recv(self.fd)
 	if not r then
 		return nil, self.last
@@ -195,15 +186,34 @@ function RpcMgr:TryRecv(f)
 	return f(self.last .. r)
 end
 
--- C2S Define
-C2SDefine = {
-	["Test"] = "ss",	-- 这里的value写函数参数，注释写参数含义会比较好
-	["Test2"] = "sss",
-}
-C2S = {}
-for k,v in pairs(C2SDefine) do
-	C2S[k] = function(...)	RpcMgr:SendRpc(k, ...)	end
+
+function S2C.SyncRoom(name, num)
+	print(string.format("SyncRoom %s %d", name, num))
 end
+
+function S2C.SyncName(name)
+	print(string.format("SyncName %s", name))
+end
+
+function RpcMgr.CheckRpc_S2C()
+	local C2SDefine = require "rpcdef.s2cRpc"
+	for k,v in pairs(C2SDefine) do
+		if not S2C[k] then
+			error(string.format("S2C[%s] not found", k))
+		end
+	end
+end
+
+function RpcMgr.RegisterRpc_C2S()
+	local C2SDefine = require "rpcdef.c2sRpc"
+	for k,v in pairs(C2SDefine) do
+		C2S[k] = function(...)	RpcMgr:SendRpc(k, ...)	end
+	end	
+end
+RpcMgr.RegisterRpc_C2S()
+RpcMgr.CheckRpc_S2C()
+
+-- C2S Define
 
 local token = {
 	server = "sample",
