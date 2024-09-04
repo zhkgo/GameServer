@@ -102,6 +102,14 @@ function RpcMgr:RecvRpcAndHandle()
 end
 
 S2C = {}
+function S2C.SyncRoom(name, num)
+	print(string.format("SyncRoom %s %d", name, num))
+end
+
+function S2C.SyncName(name)
+	print(string.format("SyncName %s", name))
+end
+
 function RpcMgr:_CallS2C(name, ...)
 	local f = S2C[name]
 	if f then
@@ -220,10 +228,10 @@ print("connect again")
 RpcMgr:Connect("127.0.0.1", 8888, subid)
 print("===>", C2S.Test(1, 2, "ssss"))
 print("===>", C2S.Test2(1, 3, "sss", {["sas"]= 1}))
-print("<===", RpcMgr:RecvRpc())
-print("<===", RpcMgr:RecvRpc())
-print("<===", RpcMgr:RecvRpc())
-print("<===", RpcMgr:RecvRpc())
+print("<===", RpcMgr:RecvRpcAndHandle())
+print("<===", RpcMgr:RecvRpcAndHandle())
+print("<===", RpcMgr:RecvRpcAndHandle())
+print("<===", RpcMgr:RecvRpcAndHandle())
 
 print("disconnect")
 RpcMgr:Disconnect()
