@@ -1,5 +1,5 @@
 -- 接收客户端的消息，然后转发给对应的处理函数
-msgpack = require "msgpack"
+msgpack = require("skynet.msgpack")
 local skynet = require "skynet"
 S2C = {}
 S2CDefine = {
