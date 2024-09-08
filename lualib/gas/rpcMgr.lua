@@ -58,11 +58,11 @@ end
 
 function RpcMgr._CallRPC(player, rpcId, ...)
     -- 若有则检查参数 TODO
-    local rpcName = C2SDefine[rpcId][1]
-    if C2S[rpcName] then
+    local rpcName = C2SDefine[rpcId] and C2SDefine[rpcId][1]
+    if rpcName and C2S[rpcName] then
         C2S[rpcName](player, ...)
     else
-        print(string.format("RpcMgr._CallRPC C2S[%s] not found", rpcName))
+        skynet.error(string.format("RpcMgr._CallRPC C2S[%s] not found", rpcId, rpcName))
     end
     
     -- 调用rpc
