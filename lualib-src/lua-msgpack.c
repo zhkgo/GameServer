@@ -923,7 +923,6 @@ int luaopen_create(lua_State *L) {
 
 LUAMOD_API int luaopen_skynet_msgpack(lua_State *L) {
     luaopen_create(L);
-    printf("luaopen_skynet_msgpack\n");
 #if LUA_VERSION_NUM < 502
     /* Register name globally for 5.1 */
     lua_pushvalue(L, -1);

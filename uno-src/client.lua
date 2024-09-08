@@ -3,6 +3,8 @@ package.cpath = "luaclib/?.so"
 package.path = "lualib/?.lua"
 local socket = require "client.socket"
 local crypt = require "client.crypt"
+local S2CDefine = require "rpcdef.s2cRpc"
+local C2SDefine = require "rpcdef.c2sRpc"
 msgpack = require "msgpack"
 if _VERSION ~= "Lua 5.4" then
 	error "Use lua 5.4"
@@ -102,8 +104,8 @@ function RpcMgr:RecvRpcAndHandle()
 	self:_CallS2C(self:RecvRpc())
 end
 
-function RpcMgr:_CallS2C(name, ...)
-	local f = S2C[name]
+function RpcMgr:_CallS2C(idx, ...)
+	local f = S2C[S2CDefine[idx]]
 	if f then
 		return f(...)
 	end
@@ -195,23 +197,21 @@ function S2C.SyncName(name)
 	print(string.format("SyncName %s", name))
 end
 
-function RpcMgr.CheckRpc_S2C()
-	local C2SDefine = require "rpcdef.s2cRpc"
-	for k,v in pairs(C2SDefine) do
-		if not S2C[k] then
-			error(string.format("S2C[%s] not found", k))
+function RpcMgr.SetRpc_S2C()
+	for k,v in pairs(S2CDefine) do
+		if not S2C[v[1]] then
+			error(string.format("S2C[%s] not found", V[1]))
 		end
 	end
 end
 
 function RpcMgr.RegisterRpc_C2S()
-	local C2SDefine = require "rpcdef.c2sRpc"
 	for k,v in pairs(C2SDefine) do
-		C2S[k] = function(...)	RpcMgr:SendRpc(k, ...)	end
+		C2S[v[1]] = function(...)RpcMgr:SendRpc(k, ...)	end
 	end	
 end
 RpcMgr.RegisterRpc_C2S()
-RpcMgr.CheckRpc_S2C()
+RpcMgr.SetRpc_S2C()
 
 -- C2S Define
 
