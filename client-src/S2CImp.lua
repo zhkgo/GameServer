@@ -14,6 +14,10 @@ function S2C.SyncIntAndS(a,b,c)
     print(a,b,c)
 end
 
+function S2C.NoParam()
+    print("NoParam")
+end
+
 -- 检查定义的RPC是否都实现了
 local function CheckS2CRpcImp()
     for _, v in pairs(S2CDefine) do 

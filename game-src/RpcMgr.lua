@@ -18,6 +18,11 @@ function C2S.Int3(cid, i1, i2, i3)
     S2C.SyncIntAndS(cid, 1, 2, "hello")
 end
 
+function C2S.NoParam(cid)
+    print("NoParam")
+    S2C.NoParam(cid)
+end
+
 function DispatchMessage(_, source, cId, rpcId, ...)
     C2S[C2SDefine[rpcId][1]](cId, ...)
     skynet.ret()

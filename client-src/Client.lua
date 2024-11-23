@@ -14,7 +14,7 @@ RpcMgr:Connect("127.0.0.1",8776)
 C2S.Test("hello", "world")
 C2S.Test2("hello", "world", "room")
 C2S.Int3(1, 2, 3)
-C2S.SASA(123,322)
+C2S.NoParam()
 
 -- 每隔一段时间尝试接收一个RPC
 while true do
