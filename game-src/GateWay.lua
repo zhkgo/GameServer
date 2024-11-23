@@ -2,8 +2,8 @@
 local skynet    = require "skynet"
 local socket    = require "skynet.socket"
 
-local C2SDefine = require "rpcdef.C2SRpc"
-local S2CDefine = require "rpcdef.S2CRpc"
+local C2SDefine = require "commondef.C2SRpc"
+local S2CDefine = require "commondef.S2CRpc"
 local BindAddr = ...
 local BYTE_LENGTH = 2 -- 用于表示包大小的字节数
 local BYTE_RPC_ID = 2 -- 用于表示RPCID的字节数
@@ -34,13 +34,7 @@ function RecvFromAddr(cID, addr)
 end
 
 -- 收到lua类型消息 给用户的下发消息
-function SendDataToAddr(_, source, name, cIDs, ...)
-    local rpcId = Name2RpcId[name]
-    if not rpcId then
-        skynet.error("error s2c name", name)
-        skynet.ret()
-        return
-    end
+function SendDataToAddr(_, source, rpcId, cIDs, ...)
     local format = S2CDefine[rpcId][2]
     if format then
         local packedData = string.pack(format, ...)

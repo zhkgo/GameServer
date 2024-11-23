@@ -1,21 +1,21 @@
 local skynet    = require "skynet"
-
-C2SDefine = require "rpcdef.C2SRpc"
+S2C       = require "common.S2C"
+C2SDefine = require "commondef.C2SRpc"
 C2S = {}
 
 function C2S.Test(cid, a, b)
     print(a,b)
-    skynet.call(GateWay, "lua", "SyncName", cid, "InTest", "InTesthello")
+    S2C.SyncName(cid, "hello", "world")
 end
 
 function C2S.Test2(cid, a,b,c)
     print(a,b,c)
-    skynet.call(GateWay, "lua", "SyncRoom", cid, "InTest2", "InTest2hello", "InTest2sa")
+    S2C.SyncRoom(cid, "hello", "world", "room")
 end
 
 function C2S.Int3(cid, i1, i2, i3)
     print(i1, i2, i3)
-    skynet.call(GateWay, "lua", "SyncIntAndS", cid, 6, 8, "666888nb")
+    S2C.SyncIntAndS(cid, 1, 2, "hello")
 end
 
 function DispatchMessage(_, source, cId, rpcId, ...)
@@ -32,10 +32,10 @@ function InitModule()
         end
     end
 
+    GateWay = skynet.uniqueservice("GateWay")
+
     -- 处理lua类型消息
     skynet.dispatch("lua", DispatchMessage)
-
-    GateWay = skynet.uniqueservice("GateWay")
 end
 
 --服务入口
