@@ -3,4 +3,7 @@ return {
 	{"SyncRoom", "sss"},
 	{"SyncIntAndS","IIs"},
 	{"NoParam", ""},
+	{"RegisterUserResult", "b"},
+	{"LoginUserResult", "b"},
+	{"ChangePasswardResult", "b"},
 }

@@ -8,7 +8,7 @@ local BindAddr = ...
 local BYTE_LENGTH = 2 -- 用于表示包大小的字节数
 local BYTE_RPC_ID = 2 -- 用于表示RPCID的字节数
 
--- 接受来自用户的数据
+-- 接受来自用户的数据 TODO: 加密通信
 function RecvFromAddr(cID, addr)
     local C2SAddr = skynet.uniqueservice("RpcMgr")
     socket.start(cID) --启动socket监听

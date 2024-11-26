@@ -1,29 +1,55 @@
 local createList = {
     [[
         CREATE TABLE IF NOT EXISTS `PlayData` (
-            `id` INT AUTO_INCREMENT PRIMARY KEY,            -- 自增主键，唯一标识每一行
-            `key` VARCHAR(100) COLLATE utf8mb4_bin,         -- key,允许重复值
-            `info` VARCHAR(8192) COLLATE utf8mb4_bin DEFAULT NULL,   -- 数据字段
-            `idx` INT DEFAULT 0                             -- 一个key对应多个info时, 用idx区分
+            `PlayName` VARCHAR(100) COLLATE utf8mb4_bin NOT NULL,
+            `SubKey` INT NOT NULL,
+            `Info` VARBINARY(40960) DEFAULT NULL,
+            PRIMARY KEY (`PlayName`, `SubKey`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 	]]
+    ,
+    -- 用户账号密码表
+    [[
+        CREATE TABLE IF NOT EXISTS `Account` (
+            `UserId` INT NOT NULL,
+            `UserName` VARCHAR(20) COLLATE utf8mb4_bin NOT NULL,
+            `Password` VARCHAR(33) COLLATE utf8mb4_bin NOT NULL,
+            PRIMARY KEY (`UserId`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+    ]]
 }
 
 local statementTable = {
     ['PlayData'] = {
-        -- 插入数据
+        -- 插入数据，如果已经存在则替换
         Insert = [[
-            INSERT INTO `PlayData` (`key`, `info`, `idx`) VALUES (?, ?, ?);
+            INSERT INTO `PlayData` (`PlayName`, `SubKey`, `Info`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `Info` = VALUES(`Info`);
         ]],
-        -- 查询key的数据
+        -- 查询PlayName的数据并按SubKey排序
         SelectKey = [[
-            SELECT `info` FROM `PlayData` WHERE `key` = ?;
+            SELECT `SubKey`,`info` FROM `PlayData` WHERE `PlayName` = ? ORDER BY `SubKey`;
         ]],
-        -- 删除key对应的所有数据
+        -- 删除指定主键的数据
         DeleteKey = [[
-            DELETE FROM `PlayData` WHERE `key` = ?;
+            DELETE FROM `PlayData` WHERE `PlayName` = ? AND `SubKey` = ?;
+        ]],
+    },
+    ['Account'] = {
+        -- 插入数据，如果已经存在则替换
+        Insert = [[
+            INSERT INTO `Account` (`UserId`, `UserName`, `Password`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `UserName` = VALUES(`UserName`), `Password` = VALUES(`Password`);
+        ]],
+        -- 查询用户账号密码
+        Select = [[
+            SELECT `UserName`, `Password` FROM `Account` WHERE `UserId` = ?;
+        ]],
+        -- 删除指定主键的数据
+        Delete = [[
+            DELETE FROM `Account` WHERE `UserId` = ?;
+        ]],
+        SelectAll = [[
+            SELECT `UserId`, `UserName`, `Password` FROM `Account`;
         ]],
     }
 }
-
-return createList, statementTable
+return {createList, statementTable}

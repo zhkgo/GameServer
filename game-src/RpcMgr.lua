@@ -1,5 +1,4 @@
 local skynet    = require "skynet"
-S2C       = require "common.S2C"
 C2SDefine = require "commondef.C2SRpc"
 C2S = {}
 
@@ -23,6 +22,21 @@ function C2S.NoParam(cid)
     S2C.NoParam(cid)
 end
 
+function C2S.RegisterUser(cid, name, passward)
+    local res = skynet.call(AccountMgr, "lua", "RegisterUser", name, passward)
+    S2C.RegisterUserResult(cid, res and 1 or 0)
+end
+
+function C2S.LoginUser(cid, name, passward)
+    local res = skynet.call(AccountMgr, "lua", "LoginUser", name, passward)
+    S2C.LoginUserResult(cid, res and 1 or 0)
+end
+
+function C2S.ChangePassward(cid, name, oldPassward, newPassward)
+    local res = skynet.call(AccountMgr, "lua", "ChangePassward", name, oldPassward, newPassward)
+    S2C.ChangePasswardResult(cid, res and 1 or 0)
+end
+
 function DispatchMessage(_, source, cId, rpcId, ...)
     C2S[C2SDefine[rpcId][1]](cId, ...)
     skynet.ret()
@@ -36,9 +50,8 @@ function InitModule()
             return
         end
     end
-
-    GateWay = skynet.uniqueservice("GateWay")
-
+    S2C = require "common.S2C"
+    AccountMgr = skynet.uniqueservice("AccountMgr")
     -- 处理lua类型消息
     skynet.dispatch("lua", DispatchMessage)
 end

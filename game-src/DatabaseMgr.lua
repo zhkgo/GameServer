@@ -1,9 +1,8 @@
 local skynet = require "skynet"
 local mysql = require "skynet.db.mysql"
-local CreateTableList, StatementTable = require "commondef.SQLTableDefine"
-
+local SQLTableDefine = require "commondef.SQLTableDefine"
+local CreateTableList, StatementTable = table.unpack(SQLTableDefine)
 DatabaseMgr = {}
-CMD = {}
 
 -- 打印table
 local function dump(obj)
@@ -62,7 +61,7 @@ function DatabaseMgr:InitModule()
 
 	-- 预备statement
 	self:PrepareStatement()
-
+ 
 	-- 等待其他服务调用
     skynet.dispatch("lua", function(_, source, cmd, ...)
         self:SendDataToAddr(_, source, cmd, ...)
@@ -90,12 +89,13 @@ function DatabaseMgr:DoConnect()
 		return
 	end
 	print("success to connect to mysql server")
+    return true
 end
 
 -- 创建不存在的表, 如果要调整表结构, 就需要去数据库重新操作并修改表结构
 function DatabaseMgr:PrepareTableNotExists()
 	for _, v in ipairs(CreateTableList) do
-		local res = self.m_db:query(v[1])
+		local res = self.m_db:query(v)
 		print(dump(res))
 	end
 end
@@ -106,7 +106,6 @@ function DatabaseMgr:PrepareStatement()
 	-- 需要保证写入流程，先delete后insert，可能会导致数据丢失，暂时没想到好办法。
 	DatabaseMgr.m_StateMents = {}
 	for k, v in pairs(StatementTable) do
-		DatabaseMgr.m_StateMents[k] = {}
 		for k1, v1 in pairs(v) do
 			DatabaseMgr.m_StateMents[k.."_"..k1] = self.m_db:prepare(v1)
 		end
@@ -115,23 +114,13 @@ end
 
 -- 收到lua类型消息 进行相应处理
 function DatabaseMgr:SendDataToAddr(_, source, cmd, ...)
-    local f = assert(CMD[cmd])
-    f(source, ...)
-end
-
-function CMD.SavePlayData(source, key, info)
-    -- 删除旧数据
-    self.m_db:execute(DatabaseMgr.m_StateMents["PlayData_DeleteKey"], key)
-    -- 插入新数据 需要拆分每个8192
-    for i = 1, #info, 8192 do
-        local res = self.m_db:execute(DatabaseMgr.m_StateMents["PlayData_Insert"], key, info:sub(i, i + 8192), i)
+    local f = assert(DatabaseMgr.m_StateMents[cmd])
+    local res = self.m_db:execute(f, ...)
+    if res.badresult then
+        skynet.error("Error: ", dump(res))
     end
-    skynet.ret()
-end
 
-function CMD.LoadPlayData(source, key)
-    local res = self.m_db:query(DatabaseMgr.m_StateMents["PlayData_SelectKey"], key)
-    skynet.ret(res)
+    skynet.retpack(res)
 end
 
 skynet.start(function()

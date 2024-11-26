@@ -1,9 +1,11 @@
 local S2CDefine = require "commondef.S2CRpc"
 local skynet = require "skynet"
 local S2C = {}
+local ConnMgr = skynet.uniqueservice("ConnMgr")
+
 for id, v in pairs(S2CDefine) do
     S2C[v[1]] = function(...)
-        skynet.call(GateWay, "lua", id, ...)
+        skynet.call(ConnMgr, "lua", id, ...)
     end
 end
 

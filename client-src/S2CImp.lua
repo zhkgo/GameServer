@@ -18,6 +18,30 @@ function S2C.NoParam()
     print("NoParam")
 end
 
+function S2C.RegisterUserResult(a)
+    if a == 1 then
+        print("Register Success")
+    else
+        print("Register Failed")
+    end
+end
+
+function S2C.LoginUserResult(a)
+    if a == 1 then
+        print("Login Success")
+    else
+        print("Login Failed")
+    end
+end
+
+function S2C.ChangePasswardResult(a)
+    if a == 1 then
+        print("Change Passward Success")
+    else
+        print("Change Passward Failed")
+    end
+end
+
 -- 检查定义的RPC是否都实现了
 local function CheckS2CRpcImp()
     for _, v in pairs(S2CDefine) do 
