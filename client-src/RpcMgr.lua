@@ -1,7 +1,7 @@
 local socket = require "client.socket"
 local crypt  = require "client.crypt"
-local S2CDefine = require "commondef.S2CRpc"
-local C2SDefine = require "commondef.C2SRpc"
+local S2CDefine = require "defs.S2CRpc"
+local C2SDefine = require "defs.C2SRpc"
 local BYTE_LENGTH = 2	--用于表示包大小的字节数
 local BYTE_RPC_ID = 2 	-- 用于表示RPCID的字节数
 

@@ -3,40 +3,26 @@ local msgpack = require "skynet.msgpack"
 local md5core = require "md5"
 
 SaltHeader = "SaltAc__"
+
 AccountMgr = {}
-CMD = {}    -- 暴露给外部的接口
-function CMD.RegisterUser(username, password)
-    return AccountMgr:RegisterUser(username, password)
-end
-
-function CMD.LoginUser(username, password)
-    return AccountMgr:LoginUser(username, password)
-end
-
-function CMD.ChangePassword(uid, oldPwd, newPwd)
-    return AccountMgr:ChangePassword(uid, oldPwd, newPwd)
-end
-
+-- 初始化模块
 function AccountMgr:InitModule()
-    DatabaseMgr = skynet.uniqueservice("DatabaseMgr")
+    -- 加载依赖模块
+    require "common.PlayDataHelper"
+
+    -- 获取依赖服务地址
+    DatabaseAddr = skynet.queryservice("DatabaseMgr")
 
     self.m_Accounts = {}
     self.m_StartUid = 10000000
 
     self:LoadDataFromDB()
 
-    skynet.dispatch("lua", function(session, source, cmd, ...)
-        local f = CMD[cmd]
-        if f then
-            skynet.ret(skynet.pack(f(...)))
-        else
-            skynet.error("AccountMgr Unknown Command: ", cmd)
-        end
-    end)
+    skynet.exportservice(AccountMgr)
 end
 
+-- 从数据库加载数据
 function AccountMgr:LoadDataFromDB()
-    PlayDataHelper = require "common.PlayDataHelper"
     local res = PlayDataHelper.LoadPlayData("Account")
 
     -- 加载Mgr数据
@@ -48,7 +34,7 @@ function AccountMgr:LoadDataFromDB()
     end
 
     -- 加载所有账号信息
-    res = skynet.call(DatabaseMgr, "lua", "Account_SelectAll")
+    res = skynet.call(DatabaseAddr, "lua", "Account_SelectAll")
     print(res, #res)
     for _, v in ipairs(res) do
         print(v['UserId'], v['UserName'], v['Password'])
@@ -56,12 +42,14 @@ function AccountMgr:LoadDataFromDB()
     end
 end
 
+-- 保存数据到数据库
 function AccountMgr:SaveDataToDB()
     -- 保存Mgr数据
     local data = msgpack.pack({self.m_StartUid})
     PlayDataHelper.SavePlayData("AccountMgr", data)
 end
 
+-- 注册账号
 function AccountMgr:RegisterUser(username, password)
     self.m_StartUid = self.m_StartUid + 1
 
@@ -75,13 +63,14 @@ function AccountMgr:RegisterUser(username, password)
     self.m_Accounts[self.m_StartUid] = {uid = self.m_StartUid, username = username, pwd = md5Pwd}
 
     -- 保存数据到数据库
-    skynet.call(DatabaseMgr, "lua", "Account_Insert", self.m_StartUid, username, md5Pwd)
+    skynet.call(DatabaseAddr, "lua", "Account_Insert", self.m_StartUid, username, md5Pwd)
 
     -- 这个时机可以调整，每隔一段时间保存一次，关服时保存一次
     self:SaveDataToDB()
     return true
 end
 
+-- 登录账号
 function AccountMgr:LoginUser(username, password)
     local md5Pwd =  md5core.sumhexa(SaltHeader .. password)
     for _, v in pairs(self.m_Accounts) do
@@ -92,13 +81,14 @@ function AccountMgr:LoginUser(username, password)
     return
 end
 
+-- 修改密码
 function AccountMgr:ChangePassword(uid, oldPwd, newPwd)
     local md5OldPwd =  md5core.sumhexa(SaltHeader .. oldPwd)
     local account = self.m_Accounts[uid]
     if account and account.pwd == md5OldPwd then
         local md5NewPwd =  md5core.sumhexa(SaltHeader .. newPwd)
         account.pwd = md5NewPwd
-        skynet.call(DatabaseMgr, "lua", "Account_Insert", uid, account.username, md5NewPwd)
+        skynet.call(DatabaseAddr, "lua", "Account_Insert", uid, account.username, md5NewPwd)
         return true
     end
     return false

@@ -1,24 +1,25 @@
 local skynet = require "skynet"
 
-local DatabaseMgr = skynet.uniqueservice("DatabaseMgr")
+local DatabaseAddr = skynet.queryservice("DatabaseMgr")
 
-local PlayDataHelper = {}
+PlayDataHelper = {}
+
 function PlayDataHelper.SavePlayData(PlayName, PlayData)
     -- 计算需要几个subkey
     local slice = 40000
     local n = math.ceil(#PlayData / slice)
     for i = 1, n do
         local SubData = string.sub(PlayData, (i - 1) * slice + 1, i * slice)
-        skynet.call(DatabaseMgr, "lua", "PlayData_Insert", PlayName, i, SubData)
+        skynet.call(DatabaseAddr, "lua", "PlayData_Insert", PlayName, i, SubData)
     end
-    skynet.call(DatabaseMgr, "lua", "PlayData_Insert", PlayName, n+1, "")
+    skynet.call(DatabaseAddr, "lua", "PlayData_Insert", PlayName, n+1, "")
 end
 
 function PlayDataHelper.LoadPlayData(PlayName)
     local PlayData = {}
     local i = 1
     local endFlag = false
-    local res = skynet.call(DatabaseMgr, "lua", "PlayData_SelectKey", PlayName)
+    local res = skynet.call(DatabaseAddr, "lua", "PlayData_SelectKey", PlayName)
 
     -- 若没有数据则返回
     if #res == 0 then
@@ -34,7 +35,7 @@ function PlayDataHelper.LoadPlayData(PlayName)
         end
         -- 若已经到最后一个数据则其他数据应当删除
         if endFlag then
-            skynet.call(DatabaseMgr, "lua", "PlayData_DeleteKey", PlayName, v['SubKey'])
+            skynet.call(DatabaseAddr, "lua", "PlayData_DeleteKey", PlayName, v['SubKey'])
         end
         -- 最后一个有效数据
         if v['Info'] == "" then
@@ -43,5 +44,3 @@ function PlayDataHelper.LoadPlayData(PlayName)
     end
     return table.concat(PlayData)
 end
-
-return PlayDataHelper

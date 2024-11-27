@@ -1,11 +1,13 @@
-local S2CDefine = require "commondef.S2CRpc"
+local S2CDefine = require "defs.S2CRpc"
 local skynet = require "skynet"
-local S2C = {}
-local ConnMgr = skynet.uniqueservice("ConnMgr")
+local ConnAddr = skynet.queryservice("ConnMgr")
 
+S2C = {}
+
+-- 初始化S2C
 for id, v in pairs(S2CDefine) do
     S2C[v[1]] = function(...)
-        skynet.call(ConnMgr, "lua", id, ...)
+        skynet.call(ConnAddr, "rpc", id, ...)
     end
 end
 
@@ -20,5 +22,3 @@ setmetatable(S2C, {
         return defaultImplement
     end
 })
-
-return S2C

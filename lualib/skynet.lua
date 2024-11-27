@@ -42,6 +42,8 @@ local skynet = {
 	PTYPE_LUA = 10,
 	PTYPE_SNAX = 11,
 	PTYPE_TRACE = 12,	-- use for debug trace
+	PTYPE_RPC = 13,	-- for RPC, remote procedure call
+	PTYPE_INNER = 14,	-- for skynet message, 内部服务间调用
 }
 
 -- code cache
@@ -1008,6 +1010,34 @@ function skynet.queryservice(global, ...)
 	end
 end
 
+-- 导入服务，方便调用服务的函数和跳转, 闭包可能有性能问题
+function skynet.importservice(name)
+	local service = {}
+	local addr = skynet.queryservice(name)
+	local meta = {
+		__index = function(t, k)
+			t[k] = function (...)
+				return skynet.call(addr, "inner", k, select(2, ...))
+			end
+			return t[k]
+		end
+	}
+	setmetatable(service, meta)
+	_G[name] = service
+end
+
+-- 导出服务，方便其他服务调用
+function skynet.exportservice(service)
+	skynet.dispatch("inner", function(session, source, cmd, ...)
+		local f = service[cmd]
+		if f then
+			skynet.ret(skynet.pack(f(service, ...)))
+		else
+			skynet.error("Unknown Command: ", cmd)
+		end
+	end)
+end
+
 function skynet.address(addr)
 	if type(addr) == "number" then
 		return string.format(":%08x",addr)
@@ -1052,6 +1082,20 @@ do
 		id = skynet.PTYPE_ERROR,
 		unpack = function(...) return ... end,
 		dispatch = _error_dispatch,
+	}
+
+	REG {
+		name = "rpc",
+		id = skynet.PTYPE_RPC,
+		pack = skynet.pack,
+		unpack = skynet.unpack,
+	}
+
+	REG {
+		name = "inner",
+		id = skynet.PTYPE_INNER,
+		pack = skynet.pack,
+		unpack = skynet.unpack,
 	}
 end
 
@@ -1185,5 +1229,7 @@ debug.init(skynet, {
 	suspend = suspend,
 	resume = coroutine_resume,
 })
+
+-- Inject internal service framework
 
 return skynet

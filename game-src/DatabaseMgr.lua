@@ -1,56 +1,15 @@
 local skynet = require "skynet"
 local mysql = require "skynet.db.mysql"
-local SQLTableDefine = require "commondef.SQLTableDefine"
+local SQLTableDefine = require "defs.SQLTableDefine"
 local CreateTableList, StatementTable = table.unpack(SQLTableDefine)
-DatabaseMgr = {}
 
--- 打印table
-local function dump(obj)
-    local getIndent, quoteStr, wrapKey, wrapVal, dumpObj
-    getIndent = function(level)
-        return string.rep("\t", level)
-    end
-    quoteStr = function(str)
-        return '"' .. string.gsub(str, '"', '\\"') .. '"'
-    end
-    wrapKey = function(val)
-        if type(val) == "number" then
-            return "[" .. val .. "]"
-        elseif type(val) == "string" then
-            return "[" .. quoteStr(val) .. "]"
-        else
-            return "[" .. tostring(val) .. "]"
-        end
-    end
-    wrapVal = function(val, level)
-        if type(val) == "table" then
-            return dumpObj(val, level)
-        elseif type(val) == "number" then
-            return val
-        elseif type(val) == "string" then
-            return quoteStr(val)
-        else
-            return tostring(val)
-        end
-    end
-    dumpObj = function(obj, level)
-        if type(obj) ~= "table" then
-            return wrapVal(obj)
-        end
-        level = level + 1
-        local tokens = {}
-        tokens[#tokens + 1] = "{"
-        for k, v in pairs(obj) do
-            tokens[#tokens + 1] = getIndent(level) .. wrapKey(k) .. " = " .. wrapVal(v, level) .. ","
-        end
-        tokens[#tokens + 1] = getIndent(level - 1) .. "}"
-        return table.concat(tokens, "\n")
-    end
-    return dumpObj(obj, 0)
-end
+DatabaseMgr = {}
 
 -- 初始化模块
 function DatabaseMgr:InitModule()
+    -- 加载依赖模块
+    require "common.Utils"
+
 	-- 连接数据库
 	if not self:DoConnect() then
 		return
@@ -63,9 +22,7 @@ function DatabaseMgr:InitModule()
 	self:PrepareStatement()
  
 	-- 等待其他服务调用
-    skynet.dispatch("lua", function(_, source, cmd, ...)
-        self:SendDataToAddr(_, source, cmd, ...)
-    end)
+    skynet.dispatch("lua", DealLuaMessage)
 end
 
 -- 连接数据库
@@ -92,11 +49,10 @@ function DatabaseMgr:DoConnect()
     return true
 end
 
--- 创建不存在的表, 如果要调整表结构, 就需要去数据库重新操作并修改表结构
+-- 创建不存在的表, 如果要调整表结构, 就需要手动去数据库重新操作并修改表结构
 function DatabaseMgr:PrepareTableNotExists()
 	for _, v in ipairs(CreateTableList) do
-		local res = self.m_db:query(v)
-		print(dump(res))
+		self.m_db:query(v)
 	end
 end
 
@@ -113,11 +69,12 @@ function DatabaseMgr:PrepareStatement()
 end
 
 -- 收到lua类型消息 进行相应处理
-function DatabaseMgr:SendDataToAddr(_, source, cmd, ...)
+function DealLuaMessage(_, source, cmd, ...)
     local f = assert(DatabaseMgr.m_StateMents[cmd])
-    local res = self.m_db:execute(f, ...)
+    local res = DatabaseMgr.m_db:execute(f, ...)
     if res.badresult then
-        skynet.error("Error: ", dump(res))
+        skynet.error("bad result")
+        PrintTable(res)
     end
 
     skynet.retpack(res)

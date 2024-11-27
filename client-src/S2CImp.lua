@@ -1,4 +1,4 @@
-local S2CDefine = require "commondef.S2CRpc"
+local S2CDefine = require "defs.S2CRpc"
 
 S2C = {}
 
