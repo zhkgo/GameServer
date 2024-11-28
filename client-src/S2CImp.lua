@@ -19,7 +19,7 @@ function S2C.NoParam()
 end
 
 function S2C.RegisterUserResult(a)
-    if a == 1 then
+    if a then
         print("Register Success")
     else
         print("Register Failed")
@@ -27,7 +27,7 @@ function S2C.RegisterUserResult(a)
 end
 
 function S2C.LoginUserResult(a)
-    if a == 1 then
+    if a then
         print("Login Success")
     else
         print("Login Failed")
@@ -35,7 +35,7 @@ function S2C.LoginUserResult(a)
 end
 
 function S2C.ChangePasswardResult(a)
-    if a == 1 then
+    if a then
         print("Change Passward Success")
     else
         print("Change Passward Failed")

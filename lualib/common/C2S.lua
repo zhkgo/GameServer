@@ -22,15 +22,15 @@ end
 
 function C2S.RegisterUser(cid, name, passward)
     local res = AccountMgr:RegisterUser(name, passward)
-    S2C.RegisterUserResult(cid, res and 1 or 0)
+    S2C.RegisterUserResult(cid, res)
 end
 
 function C2S.LoginUser(cid, name, passward)
     local res = AccountMgr:LoginUser(name, passward)
-    S2C.LoginUserResult(cid, res and 1 or 0)
+    S2C.LoginUserResult(cid, res)
 end
 
 function C2S.ChangePassward(cid, name, oldPassward, newPassward)
     local res = AccountMgr:ChangePassword(name, oldPassward, newPassward)
-    S2C.ChangePasswardResult(cid, res and 1 or 0)
+    S2C.ChangePasswardResult(cid, res)
 end

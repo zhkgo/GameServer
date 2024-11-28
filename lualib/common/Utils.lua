@@ -44,3 +44,13 @@ function PrintTable(obj)
 end
 
 
+-- 定时器 返回一个取消函数
+function set_timeout(ti, f)
+    local function t()
+        if f then
+            f()
+        end
+    end
+    skynet.timeout(ti, t)
+    return function() f = nil end
+end

@@ -1426,6 +1426,7 @@ typedef struct Header {
 ** options for pack/unpack
 */
 typedef enum KOption {
+  Kbool,  /* true or false */
   Kint,		/* signed integers */
   Kuint,	/* unsigned integers */
   Kfloat,	/* single-precision floating-point numbers */
@@ -1491,6 +1492,7 @@ static KOption getoption (Header *h, const char **fmt, int *size) {
   int opt = *((*fmt)++);
   *size = 0;  /* default */
   switch (opt) {
+    case 'y': *size = sizeof(char);return Kbool;
     case 'b': *size = sizeof(char); return Kint;
     case 'B': *size = sizeof(char); return Kuint;
     case 'h': *size = sizeof(short); return Kint;
@@ -1615,6 +1617,11 @@ static int str_pack (lua_State *L) {
      luaL_addchar(&b, LUAL_PACKPADBYTE);  /* fill alignment */
     arg++;
     switch (opt) {
+      case Kbool:{  /* booleans */
+        int n = lua_toboolean(L, arg);
+        packint(&b, (lua_Unsigned)n, h.islittle, size, 0);
+        break;
+      }
       case Kint: {  /* signed integers */
         lua_Integer n = luaL_checkinteger(L, arg);
         if (size < SZINT) {  /* need overflow check? */
@@ -1770,6 +1777,11 @@ static int str_unpack (lua_State *L) {
     luaL_checkstack(L, 2, "too many results");
     n++;
     switch (opt) {
+      case Kbool: {
+        lua_Integer res = unpackint(L, data + pos, h.islittle, size, 0);
+        lua_pushboolean(L, res == 1);
+        break;
+      }
       case Kint:
       case Kuint: {
         lua_Integer res = unpackint(L, data + pos, h.islittle, size,
