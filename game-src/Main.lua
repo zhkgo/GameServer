@@ -5,5 +5,4 @@ skynet.start(function()
 	skynet.uniqueservice("ConsoleMgr")
 	skynet.uniqueservice("AccountMgr")
 	skynet.uniqueservice("debug_console", 8000)
-
 end)
