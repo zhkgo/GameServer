@@ -1,6 +1,6 @@
-local skynet = require "skynet"
-local msgpack = require "skynet.msgpack"
-local md5core = require "md5"
+skynet = require "skynet"
+msgpack = require "skynet.msgpack"
+md5core = require "md5"
 
 SaltHeader = "SaltAc__"
 

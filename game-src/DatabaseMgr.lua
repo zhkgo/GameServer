@@ -1,7 +1,7 @@
-local skynet = require "skynet"
-local mysql = require "skynet.db.mysql"
-local SQLTableDefine = require "defs.SQLTableDefine"
-local CreateTableList, StatementTable = table.unpack(SQLTableDefine)
+skynet = require "skynet"
+mysql = require "skynet.db.mysql"
+SQLTableDefine = require "defs.SQLTableDefine"
+CreateTableList, StatementTable = table.unpack(SQLTableDefine)
 
 DatabaseMgr = {}
 

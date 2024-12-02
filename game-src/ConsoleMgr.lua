@@ -1,6 +1,6 @@
-local skynet = require "skynet"
-local snax   = require "skynet.snax"
-local socket = require "skynet.socket"
+skynet = require "skynet"
+snax   = require "skynet.snax"
+socket = require "skynet.socket"
 
 require "common.Utils"
 

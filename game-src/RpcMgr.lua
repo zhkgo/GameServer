@@ -1,4 +1,4 @@
-local skynet    = require "skynet"
+skynet    = require "skynet"
 
 C2SDefine = require "defs.C2SRpc"
 

@@ -1,6 +1,6 @@
-local S2CDefine = require "defs.S2CRpc"
-local skynet = require "skynet"
-local ConnAddr = skynet.queryservice("ConnMgr")
+S2CDefine = require "defs.S2CRpc"
+skynet = require "skynet"
+ConnAddr = skynet.queryservice("ConnMgr")
 
 S2C = {}
 

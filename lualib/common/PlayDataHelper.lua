@@ -1,6 +1,6 @@
-local skynet = require "skynet"
+skynet = require "skynet"
 
-local DatabaseAddr = skynet.queryservice("DatabaseMgr")
+DatabaseAddr = skynet.queryservice("DatabaseMgr")
 
 PlayDataHelper = {}
 

@@ -1,12 +1,12 @@
 -- 负责接受来自端口的消息并转发到对应服务
-local skynet    = require "skynet"
-local socket    = require "skynet.socket"
+skynet    = require "skynet"
+socket    = require "skynet.socket"
 
-local C2SDefine = require "defs.C2SRpc"
-local S2CDefine = require "defs.S2CRpc"
-local BindAddr = ...
-local BYTE_LENGTH = 2 -- 用于表示包大小的字节数
-local BYTE_RPC_ID = 2 -- 用于表示RPCID的字节数
+C2SDefine = require "defs.C2SRpc"
+S2CDefine = require "defs.S2CRpc"
+BindAddr = ...
+BYTE_LENGTH = 2 -- 用于表示包大小的字节数
+BYTE_RPC_ID = 2 -- 用于表示RPCID的字节数
 
 ConnMgr = {}
 
