@@ -1,4 +1,4 @@
-skynet = require "skynet"
+skynet = require "skynet.manager"
 msgpack = require "skynet.msgpack"
 md5core = require "md5"
 
@@ -10,15 +10,12 @@ function AccountMgr:InitModule()
     -- 加载依赖模块
     require "common.PlayDataHelper"
 
-    -- 获取依赖服务地址
-    DatabaseAddr = skynet.queryservice("DatabaseMgr")
-
     self.m_Accounts = {}
     self.m_StartUid = 10000000
 
     self:LoadDataFromDB()
 
-    skynet.exportservice(AccountMgr)
+    skynet.exportservice(AccountMgr, ".AccountMgr")
 end
 
 -- 从数据库加载数据
@@ -34,7 +31,7 @@ function AccountMgr:LoadDataFromDB()
     end
 
     -- 加载所有账号信息
-    res = skynet.call(DatabaseAddr, "lua", "Account_SelectAll")
+    res = skynet.call(".DatabaseMgr", "lua", "Account_SelectAll")
     print(res, #res)
     for _, v in ipairs(res) do
         print(v['UserId'], v['UserName'], v['Password'])
@@ -63,7 +60,7 @@ function AccountMgr:RegisterUser(username, password)
     self.m_Accounts[self.m_StartUid] = {uid = self.m_StartUid, username = username, pwd = md5Pwd}
 
     -- 保存数据到数据库
-    skynet.call(DatabaseAddr, "lua", "Account_Insert", self.m_StartUid, username, md5Pwd)
+    skynet.call(".DatabaseMgr", "lua", "Account_Insert", self.m_StartUid, username, md5Pwd)
 
     -- 这个时机可以调整，每隔一段时间保存一次，关服时保存一次
     self:SaveDataToDB()
@@ -88,7 +85,7 @@ function AccountMgr:ChangePassword(uid, oldPwd, newPwd)
     if account and account.pwd == md5OldPwd then
         local md5NewPwd =  md5core.sumhexa(SaltHeader .. newPwd)
         account.pwd = md5NewPwd
-        skynet.call(DatabaseAddr, "lua", "Account_Insert", uid, account.username, md5NewPwd)
+        skynet.call(".DatabaseMgr", "lua", "Account_Insert", uid, account.username, md5NewPwd)
         return true
     end
     return false

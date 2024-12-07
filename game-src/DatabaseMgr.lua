@@ -1,4 +1,4 @@
-skynet = require "skynet"
+skynet = require "skynet.manager"
 mysql = require "skynet.db.mysql"
 SQLTableDefine = require "defs.SQLTableDefine"
 CreateTableList, StatementTable = table.unpack(SQLTableDefine)
@@ -23,6 +23,9 @@ function DatabaseMgr:InitModule()
  
 	-- 等待其他服务调用
     skynet.dispatch("lua", DealLuaMessage)
+
+	-- 具名服务
+	skynet.register(".DatabaseMgr")
 end
 
 -- 连接数据库

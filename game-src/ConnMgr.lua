@@ -1,5 +1,5 @@
 -- 负责接受来自端口的消息并转发到对应服务
-skynet    = require "skynet"
+skynet    = require "skynet.manager"
 socket    = require "skynet.socket"
 
 C2SDefine = require "defs.C2SRpc"
@@ -19,6 +19,8 @@ function ConnMgr:InitModule()
     socket.start(lID, AcceptConn)
 
 	skynet.dispatch("rpc", DealRpcMessage)
+
+    skynet.register(".ConnMgr")
 end
 
 -- 收到新连接
@@ -29,8 +31,8 @@ end
 
 -- 接受来自用户的数据 TODO: 加密通信
 function RecvFromAddr(cID, addr)
-    local RpcMgr = skynet.uniqueservice("RpcMgr")
     socket.start(cID) --启动socket监听
+    socket.onclose(cID, OnDisConnect)
     while true do
         local size = socket.read(cID, BYTE_LENGTH)
         if size then
@@ -39,7 +41,7 @@ function RecvFromAddr(cID, addr)
             local rpcId, nxtPos = string.unpack("I2", bytes)
             local format = C2SDefine[rpcId][2]
             if format then
-                skynet.call(RpcMgr, "rpc", cID, rpcId, string.unpack(format, bytes, nxtPos))
+                skynet.call(".RpcMgr", "rpc", cID, rpcId, string.unpack(format, bytes, nxtPos))
             else
                 skynet.error("illegal rpcId" .. rpcId)
             end
@@ -50,6 +52,11 @@ function RecvFromAddr(cID, addr)
             return
         end
     end
+end
+
+function OnDisConnect(cID)
+    print("OnDisConnect", cID)
+    skynet.send(".RpcMgr", "lua", "OnDisconnect", cID)
 end
 
 -- 收到RPC类型消息 给用户的下发消息

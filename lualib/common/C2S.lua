@@ -26,8 +26,11 @@ function C2S.RegisterUser(cid, name, passward)
 end
 
 function C2S.LoginUser(cid, name, passward)
-    local res = AccountMgr:LoginUser(name, passward)
-    S2C.LoginUserResult(cid, res)
+    local playerId = AccountMgr:LoginUser(name, passward)
+    if playerId then
+        RpcMgr.m_PlayerId2ConnId[playerId] = cid
+    end
+    S2C.LoginUserResult(cid, playerId)
 end
 
 function C2S.ChangePassward(cid, name, oldPassward, newPassward)

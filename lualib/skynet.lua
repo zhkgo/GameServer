@@ -1010,38 +1010,6 @@ function skynet.queryservice(global, ...)
 	end
 end
 
--- 导入服务，方便调用服务的函数和跳转
-function skynet.importservice(name)
-	local service = {}
-	local addr = skynet.queryservice(name)
-	local meta = {
-		__index = function(t, k)
-			t[k] = function (arg, ...)
-				-- 为了方便调用服务的函数，如果是:调用，则等待返回， 否则直接发送
-				if arg == t then
-					return skynet.call(addr, "inner", k, ...)
-				end
-				skynet.send(addr, "inner", k, arg, ...)
-			end
-			return t[k]
-		end
-	}
-	setmetatable(service, meta)
-	_G[name] = service
-end
-
--- 导出服务，方便其他服务调用
-function skynet.exportservice(service)
-	skynet.dispatch("inner", function(session, source, cmd, ...)
-		local f = service[cmd]
-		if f then
-			skynet.ret(skynet.pack(f(service, ...)))
-		else
-			skynet.error("Unknown Command: ", cmd)
-		end
-	end)
-end
-
 function skynet.address(addr)
 	if type(addr) == "number" then
 		return string.format(":%08x",addr)

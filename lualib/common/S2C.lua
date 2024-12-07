@@ -1,13 +1,11 @@
 S2CDefine = require "defs.S2CRpc"
-skynet = require "skynet"
-ConnAddr = skynet.queryservice("ConnMgr")
 
 S2C = {}
 
 -- 初始化S2C
 for id, v in pairs(S2CDefine) do
     S2C[v[1]] = function(...)
-        skynet.call(ConnAddr, "rpc", id, ...)
+        skynet.call(".ConnMgr", "rpc", id, ...)
     end
 end
 

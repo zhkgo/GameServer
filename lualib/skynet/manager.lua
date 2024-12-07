@@ -103,4 +103,44 @@ function skynet.monitor(service, query)
 	return monitor
 end
 
+-- 导入服务，方便调用服务的函数和跳转, bRegisteredName表示是否是已经注册的服务
+function skynet.importservice(name, bRegisteredName)
+	local service = {}
+	local service_name 
+	if bRegisteredName then 
+		service_name = "." .. name
+	else
+		service_name = skynet.queryservice(name)
+	end
+	local meta = {
+		__index = function(t, k)
+			t[k] = function (arg, ...)
+				-- 为了方便调用服务的函数，如果是:调用，则等待返回， 否则直接发送
+				if arg == t then
+					return skynet.call(service_name, "inner", k, ...)
+				end
+				skynet.send(service_name, "inner", k, arg, ...)
+			end
+			return t[k]
+		end
+	}
+	setmetatable(service, meta)
+	_G[name] = service
+end
+
+-- 导出服务，方便其他服务调用
+function skynet.exportservice(service, service_name)
+	skynet.dispatch("inner", function(session, source, cmd, ...)
+		local f = service[cmd]
+		if f then
+			skynet.ret(skynet.pack(f(service, ...)))
+		else
+			skynet.error("Unknown Command: ", cmd)
+		end
+	end)
+	if service_name then
+		skynet.register(service_name)
+	end
+end
+
 return skynet
