@@ -45,10 +45,44 @@ end
 
 
 -- 定时器 返回一个取消函数
-function set_timeout(ti, f)
+function RegisterTickOnce(ti, f)
     local function t()
         if f then
             f()
+        end
+    end
+    skynet.timeout(ti, t)
+    return function() f = nil end
+end
+
+-- 定时启动 返回一个取消函数
+function RegisterTick(ti, f)
+    local t
+    t = function()
+        if f then
+            f()
+            skynet.timeout(ti, t)
+        end
+    end
+    skynet.timeout(ti, t)
+    return function() f = nil end
+end
+
+-- 定时启动 计时器有效期是duration
+function RegisterTickWithDuration(ti, duration, f)
+    local count = duration/ ti
+    if count < 1 then
+        return
+    end
+    local cnt = 0
+    local t
+    t = function()
+        if f then
+            cnt = cnt + 1
+            f()
+            if cnt < count then
+                skynet.timeout(ti, t)
+            end
         end
     end
     skynet.timeout(ti, t)
