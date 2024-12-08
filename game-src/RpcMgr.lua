@@ -16,37 +16,24 @@ function RpcMgr:InitModule()
         end
     end
 
-    self.m_PlayerId2ConnId = {}
     -- 处理rpc类型消息
     skynet.dispatch("rpc", DealRpcMessage)
 
     -- 处理lua类型消息
     skynet.dispatch("lua", DealLuaMessage)
 
-    -- 导入AccountMgr`
+    -- 导入AccountMgr
     skynet.importservice("AccountMgr", true)
+
+    -- 导入PlayerMgr
+    skynet.importservice("PlayerMgr", true)
 
     -- 导出服务，方便其他服务调用
     skynet.exportservice(RpcMgr, ".RpcMgr")
 end
 
 function RpcMgr:OnDisconnect(cId)
-    for playerId, connId in pairs(self.m_PlayerId2ConnId) do
-        if connId == cId then
-            self.m_PlayerId2ConnId[playerId] = nil
-            print("playerId disconnect", playerId)
-            break
-        end
-    end
-end
-
-function RpcMgr:SendRpc(playerId, rpcName, ...)
-    local cid = self.m_PlayerId2ConnId(playerId)
-    if(not cid) then
-        skynet.warn("playerId not online ", playerId)
-        return
-    end
-    S2C["rpcName"](playerId, ...)
+    PlayerMgr.OnDisconnect(cId)
 end
 
 -- 处理rpc类型消息

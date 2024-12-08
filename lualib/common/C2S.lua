@@ -28,7 +28,8 @@ end
 function C2S.LoginUser(cid, name, passward)
     local playerId = AccountMgr:LoginUser(name, passward)
     if playerId then
-        RpcMgr.m_PlayerId2ConnId[playerId] = cid
+        print("LoginUser", playerId, cid, name)
+        PlayerMgr.OnPlayerLogin(playerId, cid, name)
     end
     S2C.LoginUserResult(cid, playerId)
 end
