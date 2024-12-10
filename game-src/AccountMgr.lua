@@ -20,7 +20,7 @@ end
 
 -- 从数据库加载数据
 function AccountMgr:LoadDataFromDB()
-    local res = PlayDataHelper.LoadPlayData("Account")
+    local res = PlayDataHelper.LoadPlayData("AccountMgr")
 
     -- 加载Mgr数据
     if res then
@@ -60,7 +60,7 @@ function AccountMgr:RegisterUser(username, password)
     self.m_Accounts[self.m_StartUid] = {uid = self.m_StartUid, username = username, pwd = md5Pwd}
 
     -- 保存数据到数据库
-    skynet.call(".DatabaseMgr", "lua", "Account_Insert", self.m_StartUid, username, md5Pwd)
+    skynet.send(".DatabaseMgr", "lua", "Account_Insert", self.m_StartUid, username, md5Pwd)
 
     -- 这个时机可以调整，每隔一段时间保存一次，关服时保存一次
     self:SaveDataToDB()
