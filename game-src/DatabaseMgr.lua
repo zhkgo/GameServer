@@ -61,8 +61,6 @@ end
 
 -- 预备statement
 function DatabaseMgr:PrepareStatement()
-	-- PlayData 针对某个key的数据字段，存入一个info，info可能很长，所以需要多个info，用idx区分顺序
-	-- 需要保证写入流程，先delete后insert，可能会导致数据丢失，暂时没想到好办法。
 	DatabaseMgr.m_StateMents = {}
 	for k, v in pairs(StatementTable) do
 		for k1, v1 in pairs(v) do

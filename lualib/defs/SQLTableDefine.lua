@@ -27,7 +27,7 @@ local statementTable = {
         ]],
         -- 查询PlayName的数据并按SubKey排序
         SelectKey = [[
-            SELECT `SubKey`,`info` FROM `PlayData` WHERE `PlayName` = ? ORDER BY `SubKey`;
+            SELECT `SubKey`,`Info` FROM `PlayData` WHERE `PlayName` = ? ORDER BY `SubKey`;
         ]],
         -- 删除指定主键的数据
         DeleteKey = [[

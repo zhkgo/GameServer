@@ -11,6 +11,7 @@ function AccountMgr:InitModule()
     require "common.PlayDataHelper"
 
     self.m_Accounts = {}
+    self.m_AccountName2Uid = {}
     self.m_StartUid = 10000000
 
     self:LoadDataFromDB()
@@ -21,21 +22,20 @@ end
 -- 从数据库加载数据
 function AccountMgr:LoadDataFromDB()
     local res = PlayDataHelper.LoadPlayData("AccountMgr")
-
     -- 加载Mgr数据
     if res then
         res = msgpack.unpack(res)
-        if res[1] then
+        if res then
             self.m_StartUid = res[1]
         end
     end
-
     -- 加载所有账号信息
     res = skynet.call(".DatabaseMgr", "lua", "Account_SelectAll")
     print(res, #res)
     for _, v in ipairs(res) do
         print(v['UserId'], v['UserName'], v['Password'])
         self.m_Accounts[v['UserId']] = {uid = v['UserId'], username = v['UserName'], pwd = v['Password']}
+        self.m_AccountName2Uid[v['UserName']] = v['UserId']
     end
 end
 
@@ -51,13 +51,14 @@ function AccountMgr:RegisterUser(username, password)
     self.m_StartUid = self.m_StartUid + 1
 
     -- 如果账号已经存在
-    if self.m_Accounts[self.m_StartUid] then
-        return
+    if self.m_AccountName2Uid[username] then
+        return false
     end
 
     -- 保存账号信息
     local md5Pwd =  md5core.sumhexa(SaltHeader .. password)
     self.m_Accounts[self.m_StartUid] = {uid = self.m_StartUid, username = username, pwd = md5Pwd}
+    self.m_AccountName2Uid[username] = self.m_StartUid
 
     -- 保存数据到数据库
     skynet.send(".DatabaseMgr", "lua", "Account_Insert", self.m_StartUid, username, md5Pwd)
@@ -69,13 +70,14 @@ end
 
 -- 登录账号
 function AccountMgr:LoginUser(username, password)
-    local md5Pwd =  md5core.sumhexa(SaltHeader .. password)
-    for _, v in pairs(self.m_Accounts) do
-        if v.username == username and v.pwd == md5Pwd then
-            return v.uid
-        end
+    local uid = self.m_AccountName2Uid[username]
+    local account = uid and self.m_Accounts[uid]
+
+    if not (account and account.pwd == md5core.sumhexa(SaltHeader .. password)) then
+        return
     end
-    return
+
+    return uid
 end
 
 -- 修改密码

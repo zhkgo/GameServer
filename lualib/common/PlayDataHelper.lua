@@ -6,9 +6,9 @@ function PlayDataHelper.SavePlayData(PlayName, PlayData)
     local n = math.ceil(#PlayData / slice)
     for i = 1, n do
         local SubData = string.sub(PlayData, (i - 1) * slice + 1, i * slice)
-        skynet.call(".DatabaseMgr", "lua", "PlayData_Insert", PlayName, i, SubData)
+        skynet.send(".DatabaseMgr", "lua", "PlayData_Insert", PlayName, i, SubData)
     end
-    skynet.call(".DatabaseMgr", "lua", "PlayData_Insert", PlayName, n+1, "")
+    skynet.send(".DatabaseMgr", "lua", "PlayData_Insert", PlayName, n+1, "")
 end
 
 function PlayDataHelper.LoadPlayData(PlayName)
@@ -31,7 +31,7 @@ function PlayDataHelper.LoadPlayData(PlayName)
         end
         -- 若已经到最后一个数据则其他数据应当删除
         if endFlag then
-            skynet.call(".DatabaseMgr", "lua", "PlayData_DeleteKey", PlayName, v['SubKey'])
+            skynet.send(".DatabaseMgr", "lua", "PlayData_DeleteKey", PlayName, v['SubKey'])
         end
         -- 最后一个有效数据
         if v['Info'] == "" then

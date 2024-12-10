@@ -15,8 +15,8 @@ C2S.Test("hello", "world")
 C2S.Test2("hello", "world", "room")
 C2S.Int3(1, 2, 3)
 C2S.NoParam()
-C2S.RegisterUser("name", "passward")
-C2S.LoginUser("name", "passward")
+C2S.RegisterUser("5959dsd5", "passward")
+C2S.LoginUser("5959dsd5", "passward")
 C2S.LoginUser("name", "passward2")
 
 -- 每隔一段时间尝试接收一个RPC
