@@ -1,3 +1,5 @@
+__PLAYERMGR__ = true
+
 skynet    = require "skynet.manager"
 
 PlayerMgr = {}
@@ -10,16 +12,8 @@ function PlayerMgr:InitModule()
 
     -- 导出服务，方便其他服务调用
     skynet.exportservice(PlayerMgr, ".PlayerMgr")
-end
 
--- 通过playerId发送消息
-function PlayerMgr:SendRpc(playerId, rpcName, ...)
-    local cid = self.m_PlayerId2ConnId(playerId)
-    if not cid then
-        skynet.warn("playerId not online ", playerId)
-        return
-    end
-    S2C[rpcName](cid, ...)
+    skynet.dispatch("rpc", DealRpcMessage)
 end
 
 -- 应该处理重连的情况
@@ -39,6 +33,34 @@ function PlayerMgr:OnDisconnect(cId)
             break
         end
     end
+end
+
+-- 收到RPC类型消息 给用户的下发消息
+function DealRpcMessage(_, source, rpcId, playerIds, ...)
+    -- 把playerIds转换成cIds
+    local cids
+    if type(playerIds) == "number" then
+        cids = PlayerMgr.m_PlayerId2ConnId[playerIds]
+        if not cids then
+            skynet.error("playerId not online ", playerIds)
+            return
+        end
+    elseif type(playerIds) == "table" then
+        cids = {}
+        for _, playerId in ipairs(playerIds) do
+            local cId = PlayerMgr.m_PlayerId2ConnId[playerId]
+            if cId then
+                table.insert(cids, cId)
+            else
+                skynet.error("playerId not online ", playerId)
+            end
+        end
+        if #cids == 0 then
+            return
+        end
+    end
+
+    skynet.send(".ConnMgr", "rpc", rpcId, cids, ...)
 end
 
 skynet.start(function()

@@ -1,3 +1,4 @@
+__RPCMGR__ = true
 skynet    = require "skynet.manager"
 
 C2SDefine = require "defs.C2SRpc"

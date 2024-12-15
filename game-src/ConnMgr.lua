@@ -73,7 +73,6 @@ function DealRpcMessage(_, source, rpcId, cIDs, ...)
             end
         end
     end
-    skynet.ret()
 end
 
 --服务入口
